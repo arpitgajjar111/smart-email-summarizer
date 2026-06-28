@@ -6,10 +6,10 @@ fastapi==0.111.0
 uvicorn[standard]==0.30.1
 
 # ── Data Validation ───────────────────────
-pydantic==2.7.4
+pydantic==2.9.2
 
 # ── AI / NLP ──────────────────────────────
-transformers==4.41.2
+transformers==4.44.0
 torch==2.5.1             # CPU build; for GPU: pip install torch --index-url https://download.pytorch.org/whl/cu121
 sentencepiece==0.2.0     # Required by PEGASUS and T5 tokenizers
 accelerate==0.30.0       # Faster model loading
