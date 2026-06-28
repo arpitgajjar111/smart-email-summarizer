@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InkBrief — Smart Email Summarizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-mark">◈</span>
+      <span class="logo-text">InkBrief</span>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn active" data-panel="summarize">Summarize</button>
+      <button class="nav-btn" data-panel="history">History</button>
+      <button class="nav-btn" data-panel="about">Models</button>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+      <span class="theme-icon">◐</span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+<main class="main">
+
+  <!-- ── SUMMARIZE PANEL ── -->
+  <section class="panel active" id="panel-summarize">
+
+    <!-- Hero headline -->
+    <div class="hero">
+      <p class="hero-eyebrow">AI-Powered NLP</p>
+      <h1 class="hero-title">Long emails,<br /><em>short answers.</em></h1>
+      <p class="hero-sub">Paste text or upload a file. Choose your model. Get a precise summary in seconds.</p>
+    </div>
+
+    <!-- Controls strip -->
+    <div class="controls-strip">
+
+      <!-- Model selector -->
+      <div class="control-group">
+        <label class="control-label">Model</label>
+        <div class="segment-control" id="modelSelect">
+          <button class="seg-btn active" data-value="facebook/bart-large-cnn">BART</button>
+          <button class="seg-btn" data-value="google/pegasus-xsum">PEGASUS</button>
+          <button class="seg-btn" data-value="t5-base">T5</button>
+        </div>
+      </div>
+
+      <!-- Length selector -->
+      <div class="control-group">
+        <label class="control-label">Length</label>
+        <div class="segment-control" id="lengthSelect">
+          <button class="seg-btn" data-value="short">Short</button>
+          <button class="seg-btn active" data-value="medium">Medium</button>
+          <button class="seg-btn" data-value="detailed">Detailed</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input / Output workspace -->
+    <div class="workspace">
+
+      <!-- Input column -->
+      <div class="workspace-col">
+        <div class="col-header">
+          <span class="col-label">Input</span>
+          <div class="col-actions">
+            <button class="action-chip" id="uploadBtn" title="Upload PDF, DOCX, or TXT">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1v9M4 5l4-4 4 4M2 12h12v2H2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Upload
+            </button>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" hidden />
+            <button class="action-chip" id="clearBtn">Clear</button>
+          </div>
+        </div>
+        <textarea
+          id="inputText"
+          class="text-area"
+          placeholder="Paste an email, article, or document here…
+
+Tip: Works best with 100+ words."
+          spellcheck="true"
+        ></textarea>
+        <div class="counter-bar">
+          <span id="wordCountIn">0 words</span>
+          <span id="charCountIn">0 chars</span>
+        </div>
+      </div>
+
+      <!-- Divider + action -->
+      <div class="workspace-divider">
+        <button class="summarize-btn" id="summarizeBtn">
+          <span class="btn-label">Summarize</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+
+      <!-- Output column -->
+      <div class="workspace-col">
+        <div class="col-header">
+          <span class="col-label">Summary</span>
+          <div class="col-actions">
+            <button class="action-chip" id="copyBtn" disabled>Copy</button>
+            <button class="action-chip" id="downloadBtn" disabled>Download</button>
+            <button class="action-chip" id="exportPdfBtn" disabled>PDF</button>
+          </div>
+        </div>
+        <div class="output-area" id="outputArea">
+          <div class="output-placeholder">
+            <span class="placeholder-icon">◈</span>
+            <p>Your summary will appear here</p>
+          </div>
+        </div>
+        <div class="counter-bar" id="statsBar" style="display:none">
+          <span id="wordCountOut">—</span>
+          <span class="stat-pill" id="reductionPill">—</span>
+          <span id="processingTime">—</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Loading overlay (inside workspace) -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none">
+      <div class="spinner-wrap">
+        <div class="spinner"></div>
+        <p class="spinner-label" id="spinnerLabel">Loading model…</p>
+      </div>
+    </div>
+
+    <!-- Error toast -->
+    <div class="toast error-toast" id="errorToast" style="display:none"></div>
+    <div class="toast success-toast" id="successToast" style="display:none"></div>
+
+  </section>
+
+  <!-- ── HISTORY PANEL ── -->
+  <section class="panel" id="panel-history">
+    <div class="panel-header">
+      <h2 class="panel-title">Summary History</h2>
+      <div class="panel-actions">
+        <input type="text" class="search-input" id="historySearch" placeholder="Search summaries…" />
+        <button class="action-chip danger" id="clearHistoryBtn">Clear All</button>
+      </div>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="empty-state">
+        <span class="empty-icon">◫</span>
+        <p>No summaries yet. Create one to see it here.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODELS PANEL ── -->
+  <section class="panel" id="panel-about">
+    <div class="panel-header">
+      <h2 class="panel-title">Available Models</h2>
+    </div>
+    <div class="models-grid">
+
+      <div class="model-card">
+        <div class="model-card-top">
+          <span class="model-badge">BART</span>
+          <span class="model-org">Meta AI</span>
+        </div>
+        <h3 class="model-name">facebook/bart-large-cnn</h3>
+        <p class="model-desc">Fine-tuned on the CNN/DailyMail dataset. Excels at extractive-abstractive summarization for news, emails, and structured reports. The default recommendation.</p>
+        <div class="model-tags">
+          <span class="tag">Emails</span><span class="tag">News</span><span class="tag">Reports</span>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <div class="model-card-top">
+          <span class="model-badge">PEGASUS</span>
+          <span class="model-org">Google Research</span>
+        </div>
+        <h3 class="model-name">google/pegasus-xsum</h3>
+        <p class="model-desc">Pre-trained with gap-sentence generation. XSum variant produces extremely concise, abstractive one-sentence summaries. Best when brevity is critical.</p>
+        <div class="model-tags">
+          <span class="tag">Ultra-short</span><span class="tag">Abstractive</span><span class="tag">Headlines</span>
+        </div>
+      </div>
+
+      <div class="model-card">
+        <div class="model-card-top">
+          <span class="model-badge">T5</span>
+          <span class="model-org">Google Brain</span>
+        </div>
+        <h3 class="model-name">t5-base</h3>
+        <p class="model-desc">Text-to-Text Transfer Transformer. Versatile general-purpose model that frames summarization as a translation task. Solid baseline across all content types.</p>
+        <div class="model-tags">
+          <span class="tag">General</span><span class="tag">Versatile</span><span class="tag">Fast</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="api-docs-card">
+      <h3>REST API</h3>
+      <div class="api-endpoint">
+        <span class="method post">POST</span>
+        <code>/api/summarize</code>
+        <span class="api-desc">Summarize text</span>
+      </div>
+      <div class="api-endpoint">
+        <span class="method post">POST</span>
+        <code>/api/upload</code>
+        <span class="api-desc">Upload & extract file</span>
+      </div>
+      <div class="api-endpoint">
+        <span class="method get">GET</span>
+        <code>/api/history</code>
+        <span class="api-desc">Retrieve history</span>
+      </div>
+      <div class="api-endpoint">
+        <span class="method get">GET</span>
+        <code>/health</code>
+        <span class="api-desc">Health check</span>
+      </div>
+      <a href="/api/docs" target="_blank" class="docs-link">Open Interactive Docs →</a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════ HISTORY ITEM TEMPLATE ═══════════════════ -->
+<template id="historyItemTemplate">
+  <div class="history-item">
+    <div class="history-item-meta">
+      <span class="history-model-badge">BART</span>
+      <span class="history-length">medium</span>
+      <span class="history-reduction">82% shorter</span>
+      <span class="history-time">2 min ago</span>
+    </div>
+    <p class="history-preview">Original preview text…</p>
+    <p class="history-summary">Summary text…</p>
+    <div class="history-item-actions">
+      <button class="action-chip use-btn">Use this text</button>
+      <button class="action-chip danger del-btn">Delete</button>
+    </div>
+  </div>
+</template>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
